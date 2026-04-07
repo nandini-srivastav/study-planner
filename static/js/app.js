@@ -1,4 +1,57 @@
 const API = 'http://127.0.0.1:5000';
+let studyChart = null;
+
+async function loadDashboard() {
+    const res = await fetch(`${API}/stats`);
+    const stats = await res.json();
+
+    const totalMins = stats.total_mins || 0;
+    const bySubject = stats.by_subject || [];
+
+    document.getElementById('total-hours').textContent =
+        (totalMins / 60).toFixed(1);
+    document.getElementById('total-sessions').textContent =
+        bySubject.reduce((sum, s) => sum + 1, 0);
+    document.getElementById('top-subject').textContent =
+        bySubject.length > 0 ? bySubject[0].name : '—';
+
+    const labels = bySubject.map(s => s.name);
+    const data = bySubject.map(s => parseFloat((s.total_mins / 60).toFixed(1)));
+    const colours = bySubject.map(s => s.colour);
+
+    if (studyChart) studyChart.destroy();
+
+    const ctx = document.getElementById('studyChart').getContext('2d');
+    studyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Hours studied',
+                data,
+                backgroundColor: colours,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Hours'
+                    }
+                }
+            }
+        }
+    });
+}
 
 async function loadSubjects() {
     const res = await fetch(`${API}/subjects`);
@@ -22,7 +75,7 @@ async function loadSessions() {
         <div class="session-item" style="border-left-color: ${s.colour}">
             <div class="session-info">
                 <span class="session-subject">${s.subject_name}</span>
-                <span class="session-meta">${s.duration_mins} mins · ${s.date} ${s.notes ? '· ' + s.notes : ''}</span>
+                <span class="session-meta">${s.duration_mins} mins · ${s.date}${s.notes ? ' · ' + s.notes : ''}</span>
             </div>
             <button class="delete-btn" onclick="deleteSession(${s.id})">✕</button>
         </div>
@@ -40,6 +93,7 @@ async function addSubject() {
     });
     document.getElementById('subject-name').value = '';
     loadSubjects();
+    loadDashboard();
 }
 
 async function addSession() {
@@ -56,12 +110,15 @@ async function addSession() {
     document.getElementById('session-duration').value = '';
     document.getElementById('session-notes').value = '';
     loadSessions();
+    loadDashboard();
 }
 
 async function deleteSession(id) {
     await fetch(`${API}/sessions/${id}`, { method: 'DELETE' });
     loadSessions();
+    loadDashboard();
 }
 
 loadSubjects();
 loadSessions();
+loadDashboard();

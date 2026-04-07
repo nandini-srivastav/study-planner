@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Planner</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -14,6 +15,28 @@
     </header>
 
     <main>
+
+        <!-- Dashboard -->
+        <section class="card">
+            <h2>Dashboard</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total hours</span>
+                    <span class="stat-value" id="total-hours">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Total sessions</span>
+                    <span class="stat-value" id="total-sessions">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Top subject</span>
+                    <span class="stat-value" id="top-subject">—</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="studyChart"></canvas>
+            </div>
+        </section>
 
         <!-- Add Subject -->
         <section class="card">

@@ -132,3 +132,39 @@ button:hover {
     color: #999;
     font-size: 0.9rem;
 }
+
+.stats-grid {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 140px;
+    background: #f5f5ff;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #4F46E5;
+}
+
+.chart-container {
+    position: relative;
+    height: 280px;
+}
