@@ -1,8 +1,17 @@
-const API = 'http://127.0.0.1:5000';
-let studyChart = null;
+const API = window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:5000'
+    : '';
+
+async function logout() {
+    await fetch(`${API}/api/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    window.location.href = '/login';
+}
 
 async function loadDashboard() {
-    const res = await fetch(`${API}/stats`);
+    const res = await fetch(`${API}/stats`, { credentials: 'include' });
     const stats = await res.json();
 
     const totalMins = stats.total_mins || 0;
@@ -54,7 +63,7 @@ async function loadDashboard() {
 }
 
 async function loadSubjects() {
-    const res = await fetch(`${API}/subjects`);
+    const res = await fetch(`${API}/subjects`, { credentials: 'include' });
     const subjects = await res.json();
     const select = document.getElementById('session-subject');
     select.innerHTML = '<option value="">Select subject...</option>';
@@ -64,7 +73,7 @@ async function loadSubjects() {
 }
 
 async function loadSessions() {
-    const res = await fetch(`${API}/sessions`);
+    const res = await fetch(`${API}/sessions`, { credentials: 'include' });
     const sessions = await res.json();
     const list = document.getElementById('sessions-list');
     if (sessions.length === 0) {
@@ -89,6 +98,7 @@ async function addSubject() {
     await fetch(`${API}/subjects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name, colour })
     });
     document.getElementById('subject-name').value = '';
@@ -105,6 +115,7 @@ async function addSession() {
     await fetch(`${API}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ subject_id: parseInt(subject_id), duration_mins: parseInt(duration_mins), date, notes })
     });
     document.getElementById('session-duration').value = '';
@@ -114,11 +125,12 @@ async function addSession() {
 }
 
 async function deleteSession(id) {
-    await fetch(`${API}/sessions/${id}`, { method: 'DELETE' });
+    await fetch(`${API}/sessions/${id}`, { method: 'DELETE' , credentials: 'include'});
     loadSessions();
     loadDashboard();
 }
 
+let studyChart = null;
 loadSubjects();
 loadSessions();
 loadDashboard();

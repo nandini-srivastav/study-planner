@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Study Planner</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h1>Study Planner</h1>
+            <p class="auth-subtitle">Create your account</p>
+            <div id="auth-error" class="auth-error" style="display:none"></div>
+            <div class="auth-form">
+                <input type="text" id="username" placeholder="Username" />
+                <input type="email" id="email" placeholder="Email address" />
+                <input type="password" id="password" placeholder="Password" />
+                <button onclick="register()">Create account</button>
+            </div>
+            <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+        </div>
+    </div>
+    <script>
+        async function register() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const error = document.getElementById('auth-error');
+            if (!username || !email || !password) {
+                error.textContent = 'Please fill in all fields';
+                error.style.display = 'block';
+                return;
+            }
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                window.location.href = '/login';
+            } else {
+                error.textContent = data.error;
+                error.style.display = 'block';
+            }
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Study Planner</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h1>Study Planner</h1>
+            <p class="auth-subtitle">Sign in to your account</p>
+            <div id="auth-error" class="auth-error" style="display:none"></div>
+            <div class="auth-form">
+                <input type="email" id="email" placeholder="Email address" />
+                <input type="password" id="password" placeholder="Password" />
+                <button onclick="login()">Sign in</button>
+            </div>
+            <p class="auth-switch">Don't have an account? <a href="/register">Register</a></p>
+        </div>
+    </div>
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const error = document.getElementById('auth-error');
+            if (!email || !password) {
+                error.textContent = 'Please fill in all fields';
+                error.style.display = 'block';
+                return;
+            }
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                window.location.href = '/';
+            } else {
+                error.textContent = data.error;
+                error.style.display = 'block';
+            }
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+    </script>
+</body>
+</html>

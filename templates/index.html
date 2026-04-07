@@ -10,8 +10,16 @@
 <body>
 
     <header>
-        <h1>Study Planner</h1>
-        <p>Track your study sessions across all subjects</p>
+        <div class="header-row">
+            <div>
+                <h1>Study Planner</h1>
+                <p>Track your study sessions across all subjects</p>
+            </div>
+            <div class="header-actions">
+                <span class="welcome-text">Hi, {{ username }}</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
     </header>
 
     <main>
