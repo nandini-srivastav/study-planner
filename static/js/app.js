@@ -94,16 +94,46 @@ async function loadSessions() {
 async function addSubject() {
     const name = document.getElementById('subject-name').value.trim();
     const colour = document.getElementById('subject-colour').value;
+    const weekly_goal_mins = parseInt(document.getElementById('subject-goal').value) || 120;
     if (!name) return alert('Please enter a subject name');
     await fetch(`${API}/subjects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name, colour })
+        body: JSON.stringify({ name, colour, weekly_goal_mins})
     });
     document.getElementById('subject-name').value = '';
     loadSubjects();
     loadDashboard();
+    loadGoals();
+}
+
+async function loadGoals() {
+    const res = await fetch(`${API}/stats`, { credentials: 'include' });
+    const stats = await res.json();
+    const thisWeek = stats.this_week || [];
+    const list = document.getElementById('goals-list');
+    if (thisWeek.length === 0) {
+        list.innerHTML = '<p class="empty">Add subjects to see your weekly goals.</p>';
+        return;
+    }
+    list.innerHTML = thisWeek.map(s => {
+        const pct = Math.min(100, Math.round((s.week_mins / s.weekly_goal_mins) * 100));
+        const done = pct >= 100;
+        const weekHours = (s.week_mins / 60).toFixed(1);
+        const goalHours = (s.weekly_goal_mins / 60).toFixed(1);
+        return `
+            <div class="goal-item ${done ? 'goal-complete' : ''}">
+                <div class="goal-header">
+                    <span class="goal-subject">${s.name}</span>
+                    <span class="goal-meta">${weekHours}h / ${goalHours}h ${done ? '✓ Done' : `(${pct}%)`}</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: ${pct}%; background: ${s.colour}"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 async function addSession() {
@@ -122,15 +152,18 @@ async function addSession() {
     document.getElementById('session-notes').value = '';
     loadSessions();
     loadDashboard();
+    loadGoals();
 }
 
 async function deleteSession(id) {
     await fetch(`${API}/sessions/${id}`, { method: 'DELETE' , credentials: 'include'});
     loadSessions();
     loadDashboard();
+    loadGoals();
 }
 
 let studyChart = null;
 loadSubjects();
 loadSessions();
 loadDashboard();
+loadGoals();

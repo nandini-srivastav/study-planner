@@ -46,12 +46,20 @@
             </div>
         </section>
 
+        <section class="card">
+            <h2>This week's goals</h2>
+            <div id="goals-list">
+                <p class="empty">Add subjects to see your weekly goals.</p>
+            </div>
+        </section>
+
         <!-- Add Subject -->
         <section class="card">
             <h2>Add Subject</h2>
             <div class="form-row">
                 <input type="text" id="subject-name" placeholder="Subject name e.g. INFS3202" />
                 <input type="color" id="subject-colour" value="#4F46E5" />
+                <input type="number" id="subject-goal" placeholder="Weekly goal (mins)" min="30" value="120" style="max-width: 180px" />
                 <button onclick="addSubject()">Add Subject</button>
             </div>
         </section>
@@ -83,3 +91,4 @@
     <script src="/static/js/app.js"></script>
 </body>
 </html>
+

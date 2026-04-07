@@ -119,6 +119,19 @@ def delete_subject(subject_id):
     db.close()
     return jsonify({'message': 'Subject deleted'})
 
+@app.route('/subjects/<int:subject_id>', methods=['PUT'])
+@login_required
+def update_subject(subject_id):
+    data = request.get_json()
+    db = get_db()
+    db.execute(
+        'UPDATE subjects SET weekly_goal_mins = ? WHERE id = ? AND user_id = ?',
+        (data.get('weekly_goal_mins', 120), subject_id, session['user_id'])
+    )
+    db.commit()
+    db.close()
+    return jsonify({'message': 'Subject updated'})
+
 # --- Sessions ---
 
 @app.route('/sessions', methods=['GET'])
@@ -172,7 +185,7 @@ def get_stats():
         WHERE subjects.user_id = ?
     ''', (session['user_id'],)).fetchone()
     by_subject = db.execute('''
-        SELECT subjects.name, subjects.colour, subjects.weekly_goal_mins,
+        SELECT subjects.id, subjects.name, subjects.colour, subjects.weekly_goal_mins,
                SUM(sessions.duration_mins) as total_mins
         FROM sessions
         JOIN subjects ON sessions.subject_id = subjects.id
@@ -180,10 +193,23 @@ def get_stats():
         GROUP BY subjects.id
         ORDER BY total_mins DESC
     ''', (session['user_id'],)).fetchall()
+    
+    this_week = db.execute('''
+        SELECT subjects.id, subjects.name, subjects.colour, subjects.weekly_goal_mins,
+               COALESCE(SUM(sessions.duration_mins), 0) as week_mins
+        FROM subjects
+        LEFT JOIN sessions ON sessions.subject_id = subjects.id
+            AND sessions.date >= date('now', 'weekday 0', '-7 days')
+        WHERE subjects.user_id = ?
+        GROUP BY subjects.id
+        ORDER BY subjects.name
+    ''', (session['user_id'],)).fetchall()
+    
     db.close()
     return jsonify({
         'total_mins': total['total'] or 0,
-        'by_subject': [dict(r) for r in by_subject]
+        'by_subject': [dict(r) for r in by_subject],
+        'this_week': [dict(r) for r in this_week]
     })
 
 # --- Run ---
