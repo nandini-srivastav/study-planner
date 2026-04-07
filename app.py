@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from database import get_db, init_db
 
@@ -90,6 +90,9 @@ def get_stats():
         'total_mins': total['total'] or 0,
         'by_subject': [dict(r) for r in by_subject]
     })
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 # --- Run ---
 

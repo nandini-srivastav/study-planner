@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Study Planner</h1>
+        <p>Track your study sessions across all subjects</p>
+    </header>
+
+    <main>
+
+        <!-- Add Subject -->
+        <section class="card">
+            <h2>Add Subject</h2>
+            <div class="form-row">
+                <input type="text" id="subject-name" placeholder="Subject name e.g. INFS3202" />
+                <input type="color" id="subject-colour" value="#4F46E5" />
+                <button onclick="addSubject()">Add Subject</button>
+            </div>
+        </section>
+
+        <!-- Log Session -->
+        <section class="card">
+            <h2>Log Study Session</h2>
+            <div class="form-row">
+                <select id="session-subject">
+                    <option value="">Select subject...</option>
+                </select>
+                <input type="number" id="session-duration" placeholder="Duration (mins)" min="1" />
+                <input type="date" id="session-date" />
+                <input type="text" id="session-notes" placeholder="Notes (optional)" />
+                <button onclick="addSession()">Log Session</button>
+            </div>
+        </section>
+
+        <!-- Sessions List -->
+        <section class="card">
+            <h2>Recent Sessions</h2>
+            <div id="sessions-list">
+                <p class="empty">No sessions logged yet.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
