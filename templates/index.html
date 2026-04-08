@@ -53,6 +53,28 @@
             </div>
         </section>
 
+        <!-- Pomodoro Timer -->
+        <section class="card">
+            <h2>Pomodoro Timer</h2>
+            <div class="pomodoro-wrapper">
+                <div class="pomodoro-select-row">
+                    <select id="pomodoro-subject">
+                        <option value="">Select subject...</option>
+                    </select>
+                </div>
+                <div class="pomodoro-display">
+                    <div id="pomodoro-mode">Focus</div>
+                    <div id="pomodoro-time">25:00</div>
+                    <div id="pomodoro-count">Pomodoro #1</div>
+                </div>
+                <div class="pomodoro-controls">
+                    <button onclick="startPomodoro()" id="btn-start">Start</button>
+                    <button onclick="resetPomodoro()" id="btn-reset">Reset</button>
+                </div>
+                <div id="pomodoro-message" class="pomodoro-message"></div>
+            </div>
+        </section>
+
         <!-- Add Subject -->
         <section class="card">
             <h2>Add Subject</h2>

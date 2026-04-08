@@ -2,6 +2,95 @@ const API = window.location.hostname === '127.0.0.1'
     ? 'http://127.0.0.1:5000'
     : '';
 
+// --- Pomodoro Timer ---
+let pomodoroInterval = null;
+let pomodoroSeconds = 25 * 60;
+let pomodoroCount = 1;
+let isBreak = false;
+let isRunning = false;
+
+function updatePomodoroDisplay() {
+    const mins = Math.floor(pomodoroSeconds / 60);
+    const secs = pomodoroSeconds % 60;
+    document.getElementById('pomodoro-time').textContent =
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+async function pomodoroComplete() {
+    if (!isBreak) {
+        const subjectId = document.getElementById('pomodoro-subject').value;
+        const msg = document.getElementById('pomodoro-message');
+        if (subjectId) {
+            const today = new Date().toISOString().split('T')[0];
+            await fetch(`${API}/sessions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    subject_id: parseInt(subjectId),
+                    duration_mins: 25,
+                    date: today,
+                    notes: `Pomodoro #${pomodoroCount}`
+                })
+            });
+            loadSessions();
+            loadDashboard();
+            loadGoals();
+            msg.textContent = `Pomodoro #${pomodoroCount} logged!`;
+            setTimeout(() => { msg.textContent = ''; }, 3000);
+        }
+        isBreak = true;
+        pomodoroSeconds = 5 * 60;
+        document.getElementById('pomodoro-mode').textContent = 'Break';
+        document.getElementById('pomodoro-time').classList.add('break');
+        document.getElementById('pomodoro-count').textContent = `Break time!`;
+    } else {
+        pomodoroCount++;
+        isBreak = false;
+        pomodoroSeconds = 25 * 60;
+        document.getElementById('pomodoro-mode').textContent = 'Focus';
+        document.getElementById('pomodoro-time').classList.remove('break');
+        document.getElementById('pomodoro-count').textContent = `Pomodoro #${pomodoroCount}`;
+    }
+    updatePomodoroDisplay();
+}
+
+function startPomodoro() {
+    const btn = document.getElementById('btn-start');
+    if (isRunning) {
+        clearInterval(pomodoroInterval);
+        isRunning = false;
+        btn.textContent = 'Resume';
+        return;
+    }
+    isRunning = true;
+    btn.textContent = 'Pause';
+    pomodoroInterval = setInterval(async () => {
+        pomodoroSeconds--;
+        updatePomodoroDisplay();
+        if (pomodoroSeconds <= 0) {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+            await pomodoroComplete();
+            startPomodoro();
+        }
+    }, 1000);
+}
+
+function resetPomodoro() {
+    clearInterval(pomodoroInterval);
+    isRunning = false;
+    isBreak = false;
+    pomodoroSeconds = 25 * 60;
+    pomodoroCount = 1;
+    document.getElementById('btn-start').textContent = 'Start';
+    document.getElementById('pomodoro-mode').textContent = 'Focus';
+    document.getElementById('pomodoro-time').classList.remove('break');
+    document.getElementById('pomodoro-count').textContent = 'Pomodoro #1';
+    document.getElementById('pomodoro-message').textContent = '';
+    updatePomodoroDisplay();
+}
+
 async function logout() {
     await fetch(`${API}/api/logout`, {
         method: 'POST',
@@ -65,10 +154,13 @@ async function loadDashboard() {
 async function loadSubjects() {
     const res = await fetch(`${API}/subjects`, { credentials: 'include' });
     const subjects = await res.json();
-    const select = document.getElementById('session-subject');
-    select.innerHTML = '<option value="">Select subject...</option>';
-    subjects.forEach(s => {
-        select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    const select = ['session-subject', 'pomodoro-subject'];
+    selects.forEach(id => {
+        const select = document.getElementById(id);
+        select.innerHTML = '<option value="">Select subject...</option>';
+        subjects.forEach(s => {
+            select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+        });
     });
 }
 

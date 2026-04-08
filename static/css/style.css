@@ -307,3 +307,77 @@ button:hover {
 .goal-complete .progress-bar-fill {
     background: #22c55e !important;
 }
+
+.pomodoro-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.pomodoro-select-row {
+    width: 100%;
+    max-width: 300px;
+}
+
+.pomodoro-select-row select {
+    width: 100%;
+}
+
+.pomodoro-display {
+    text-align: center;
+}
+
+#pomodoro-mode {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+#pomodoro-time {
+    font-size: 5rem;
+    font-weight: 600;
+    color: #4F46E5;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+#pomodoro-count {
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 0.5rem;
+}
+
+.pomodoro-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.pomodoro-controls button {
+    min-width: 100px;
+}
+
+#btn-reset {
+    background: none;
+    color: #4F46E5;
+    border: 1px solid #4F46E5;
+}
+
+#btn-reset:hover {
+    background: #4F46E5;
+    color: white;
+}
+
+.pomodoro-message {
+    font-size: 0.9rem;
+    color: #22c55e;
+    font-weight: 500;
+    min-height: 1.2em;
+    text-align: center;
+}
+
+#pomodoro-time.break {
+    color: #22c55e;
+}
