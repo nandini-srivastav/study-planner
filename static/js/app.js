@@ -228,6 +228,71 @@ async function loadGoals() {
     }).join('');
 }
 
+async function loadHeatmap() {
+    const res = await fetch(`${API}/heatmap`, { credentials: 'include' });
+    const data = await res.json();
+
+    const container = document.getElementById('heatmap-container');
+    container.innerHTML = '';
+
+    let tooltip = document.getElementById('heatmap-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'heatmap-tooltip';
+        tooltip.className = 'heatmap-tooltip';
+        document.body.appendChild(tooltip);
+    }
+
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() - 89);
+    start.setDate(start.getDate() - start.getDay());
+
+    const maxMins = Math.max(...Object.values(data), 1);
+
+    function getColour(mins) {
+        if (!mins) return '#eee';
+        const intensity = mins / maxMins;
+        if (intensity < 0.25) return '#c7d2fe';
+        if (intensity < 0.5)  return '#818cf8';
+        if (intensity < 0.75) return '#4F46E5';
+        return '#3730a3';
+    }
+
+    const cursor = new Date(start);
+    while (cursor <= today) {
+        const week = document.createElement('div');
+        week.className = 'heatmap-week';
+        for (let d = 0; d < 7; d++) {
+            const day = document.createElement('div');
+            day.className = 'heatmap-day';
+            const dateStr = cursor.toISOString().split('T')[0];
+            const mins = data[dateStr] || 0;
+            day.style.background = getColour(mins);
+
+            if (cursor > today) {
+                day.style.background = 'transparent';
+            }
+
+            day.addEventListener('mousemove', e => {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX + 10) + 'px';
+                tooltip.style.top = (e.clientY - 28) + 'px';
+                tooltip.textContent = mins
+                    ? `${dateStr}: ${mins} mins`
+                    : `${dateStr}: no study`;
+            });
+            day.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+
+            week.appendChild(day);
+            cursor.setDate(cursor.getDate() + 1);
+        }
+        container.appendChild(week);
+    }
+}
+
 async function addSession() {
     const subject_id = document.getElementById('session-subject').value;
     const duration_mins = document.getElementById('session-duration').value;
@@ -245,6 +310,7 @@ async function addSession() {
     loadSessions();
     loadDashboard();
     loadGoals();
+    loadHeatmap()
 }
 
 async function deleteSession(id) {
@@ -252,6 +318,7 @@ async function deleteSession(id) {
     loadSessions();
     loadDashboard();
     loadGoals();
+    loadHeatmap()
 }
 
 let studyChart = null;
@@ -259,3 +326,4 @@ loadSubjects();
 loadSessions();
 loadDashboard();
 loadGoals();
+loadHeatmap()

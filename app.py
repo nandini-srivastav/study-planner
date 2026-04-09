@@ -212,6 +212,21 @@ def get_stats():
         'this_week': [dict(r) for r in this_week]
     })
 
+@app.route('/heatmap', methods=['GET'])
+@login_required
+def get_heatmap():
+    db = get_db()
+    rows = db.execute('''
+        SELECT sessions.date, SUM(sessions.duration_mins) as total_mins
+        FROM sessions
+        JOIN subjects ON sessions.subject_id = subjects.id
+        WHERE subjects.user_id = ?
+        AND sessions.date >= date('now', '-90 days')
+        GROUP BY sessions.date
+    ''', (session['user_id'],)).fetchall()
+    db.close()
+    return jsonify({row['date']: row['total_mins'] for row in rows})
+
 # --- Run ---
 
 if __name__ == '__main__':

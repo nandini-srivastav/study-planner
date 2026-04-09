@@ -381,3 +381,57 @@ button:hover {
 #pomodoro-time.break {
     color: #22c55e;
 }
+
+.heatmap-container {
+    display: flex;
+    gap: 3px;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.heatmap-week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.heatmap-day {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: #eee;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+}
+
+.heatmap-day:hover {
+    transform: scale(1.3);
+}
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0.75rem;
+    justify-content: flex-end;
+}
+
+.legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.heatmap-tooltip {
+    position: fixed;
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    pointer-events: none;
+    z-index: 100;
+    white-space: nowrap;
+    display: none;
+}
