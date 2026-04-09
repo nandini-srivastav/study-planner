@@ -435,3 +435,50 @@ button:hover {
     white-space: nowrap;
     display: none;
 }
+
+.exams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.exam-card {
+    border-radius: var(--radius, 10px);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border: 0.5px solid #eee;
+}
+
+.exam-subject {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.exam-date {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.exam-days {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.1;
+    margin-top: 0.25rem;
+}
+
+.exam-days-label {
+    font-size: 0.78rem;
+    color: #666;
+}
+
+.urgent { background: #fff0f0; }
+.urgent .exam-days { color: #e53e3e; }
+
+.soon { background: #fffbeb; }
+.soon .exam-days { color: #d97706; }
+
+.ok { background: #f0fdf4; }
+.ok .exam-days { color: #16a34a; }

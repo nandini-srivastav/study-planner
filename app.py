@@ -119,6 +119,19 @@ def delete_subject(subject_id):
     db.close()
     return jsonify({'message': 'Subject deleted'})
 
+@app.route('/exams', methods=['GET'])
+@login_required
+def get_exams():
+    db = get_db()
+    subjects = db.execute('''
+        SELECT id, name, colour, exam_date
+        FROM subjects
+        WHERE user_id = ? AND exam_date IS NOT NULL
+        ORDER BY exam_date ASC
+    ''', (session['user_id'],)).fetchall()
+    db.close()
+    return jsonify([dict(s) for s in subjects])
+
 @app.route('/subjects/<int:subject_id>', methods=['PUT'])
 @login_required
 def update_subject(subject_id):
@@ -131,6 +144,19 @@ def update_subject(subject_id):
     db.commit()
     db.close()
     return jsonify({'message': 'Subject updated'})
+
+@app.route('/subjects/<int:subject_id>/exam', methods=['PUT'])
+@login_required
+def set_exam_date(subject_id):
+    data = request.get_json()
+    db = get_db()
+    db.execute(
+        'UPDATE subjects SET exam_date = ? WHERE id = ? AND user_id = ?',
+        (data.get('exam_date'), subject_id, session['user_id'])
+    )
+    db.commit()
+    db.close()
+    return jsonify({'message': 'Exam date set'})
 
 # --- Sessions ---
 

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     name TEXT NOT NULL,
     colour TEXT NOT NULL DEFAULT '#4F46E5',
     weekly_goal_mins INTEGER NOT NULL DEFAULT 120,
+    exam_date TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

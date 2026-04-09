@@ -46,10 +46,26 @@
             </div>
         </section>
 
+        <!-- Weekly Goal -->
         <section class="card">
             <h2>This week's goals</h2>
             <div id="goals-list">
                 <p class="empty">Add subjects to see your weekly goals.</p>
+            </div>
+        </section>
+
+        <!-- Exam Countdowns -->
+        <section class="card">
+            <h2>Exam countdowns</h2>
+            <div class="form-row" style="margin-bottom: 1rem;">
+                <select id="exam-subject-select">
+                    <option value="">Select subject...</option>
+                </select>
+                <input type="date" id="exam-date-input" style="max-width: 180px" />
+                <button onclick="setExamDate()">Set exam date</button>
+            </div>
+            <div id="exams-list">
+                <p class="empty">No exam dates set. Add a subject with an exam date.</p>
             </div>
         </section>
 
