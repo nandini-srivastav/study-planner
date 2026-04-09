@@ -132,19 +132,6 @@ def get_exams():
     db.close()
     return jsonify([dict(s) for s in subjects])
 
-@app.route('/subjects/<int:subject_id>', methods=['PUT'])
-@login_required
-def update_subject(subject_id):
-    data = request.get_json()
-    db = get_db()
-    db.execute(
-        'UPDATE subjects SET weekly_goal_mins = ? WHERE id = ? AND user_id = ?',
-        (data.get('weekly_goal_mins', 120), subject_id, session['user_id'])
-    )
-    db.commit()
-    db.close()
-    return jsonify({'message': 'Subject updated'})
-
 @app.route('/subjects/<int:subject_id>/exam', methods=['PUT'])
 @login_required
 def set_exam_date(subject_id):
@@ -157,6 +144,19 @@ def set_exam_date(subject_id):
     db.commit()
     db.close()
     return jsonify({'message': 'Exam date set'})
+
+@app.route('/subjects/<int:subject_id>', methods=['PUT'])
+@login_required
+def update_subject(subject_id):
+    data = request.get_json()
+    db = get_db()
+    db.execute(
+        'UPDATE subjects SET colour = ?, weekly_goal_mins = ? WHERE id = ? AND user_id = ?',
+        (data.get('colour'), data.get('weekly_goal_mins'), subject_id, session['user_id'])
+    )
+    db.commit()
+    db.close()
+    return jsonify({'message': 'Subject updated'})
 
 # --- Sessions ---
 

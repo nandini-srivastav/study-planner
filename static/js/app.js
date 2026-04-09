@@ -204,7 +204,7 @@ async function loadGoals() {
       return `
             <div class="goal-item ${done ? "goal-complete" : ""}">
                 <div class="goal-header">
-                    <span class="goal-subject">${s.name}</span>
+                    <span class="goal-subject">${s.name}<button class="subject-edit-btn" onclick="openEditModal(${s.id}, '${s.name}', '${s.colour}', ${s.weekly_goal_mins})">Edit</button></span>
                     <span class="goal-meta">${weekHours}h / ${goalHours}h ${done ? "✓ Done" : `(${pct}%)`}</span>
                 </div>
                 <div class="progress-bar-bg">
@@ -323,17 +323,46 @@ async function addSubject() {
   const weekly_goal_mins =
     parseInt(document.getElementById("subject-goal").value) || 120;
   if (!name) return alert("Please enter a subject name");
-  await fetch(`${API}/subjects`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ name, colour, weekly_goal_mins }),
-  });
-  document.getElementById("subject-name").value = "";
-  loadSubjects();
-  loadDashboard();
-  loadGoals();
-  loadExams();
+  const res = await fetch(`${API}/subjects`, { credentials: 'include' });
+    const existing = await res.json();
+    const duplicate = existing.find(s => s.name.toLowerCase() === name.toLowerCase());
+
+    if (duplicate) {
+        const choice = confirm(
+            `"${name}" already exists.\n\nClick OK to edit the existing subject.\nClick Cancel to replace it with a new entry.`
+        );
+        if (choice) {
+            openEditModal(duplicate.id, duplicate.name, duplicate.colour, duplicate.weekly_goal_mins);
+        } else {
+            await fetch(`${API}/subjects/${duplicate.id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            await fetch(`${API}/subjects`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name, colour, weekly_goal_mins })
+            });
+            document.getElementById("subject-name").value = "";
+            loadSubjects();
+            loadDashboard();
+            loadGoals();
+            loadExams();
+        }
+        return;
+    }
+    await fetch(`${API}/subjects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name, colour, weekly_goal_mins })
+    });
+    document.getElementById('subject-name').value = '';
+    loadSubjects();
+    loadDashboard();
+    loadGoals();
+    loadExams();
 }
 
 async function addSession() {
@@ -373,6 +402,35 @@ async function deleteSession(id) {
   loadGoals();
   loadHeatmap();
   loadExams();
+}
+
+function openEditModal(id, name, colour, goalMins) {
+  document.getElementById("edit-subject-id").value = id;
+  document.getElementById("edit-subject-name").value = name;
+  document.getElementById("edit-subject-colour").value = colour;
+  document.getElementById("edit-subject-goal").value = goalMins;
+  document.getElementById("modal-overlay").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").style.display = "none";
+}
+
+async function saveSubjectEdit() {
+  const id = document.getElementById("edit-subject-id").value;
+  const colour = document.getElementById("edit-subject-colour").value;
+  const weekly_goal_mins =
+    parseInt(document.getElementById("edit-subject-goal").value) || 120;
+  await fetch(`${API}/subjects/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ colour, weekly_goal_mins }),
+  });
+  closeModal();
+  loadSubjects();
+  loadDashboard();
+  loadGoals();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
