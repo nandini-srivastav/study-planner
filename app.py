@@ -1,3 +1,9 @@
+import fitz
+import os
+
+from google import genai
+from google.genai import types
+
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -252,6 +258,67 @@ def get_heatmap():
     ''', (session['user_id'],)).fetchall()
     db.close()
     return jsonify({row['date']: row['total_mins'] for row in rows})
+
+@app.route('/generate-study-plan', methods=['POST'])
+@login_required
+def generate_study_plan():
+    subject_id = request.form.get('subject_id')
+    exam_date = request.form.get('exam_date')
+    hours_per_week = request.form.get('hours_per_week')
+    syllabus_file = request.files.get('syllabus')
+
+    if not all([subject_id, exam_date, hours_per_week, syllabus_file]):
+        return jsonify({'error': 'All fields are required'}), 400
+
+    pdf = fitz.open(stream=syllabus_file.read(), filetype='pdf')
+    syllabus_text = ''
+    for page in pdf:
+        syllabus_text += page.get_text()
+    pdf.close()
+    syllabus_text = syllabus_text[:8000]
+
+    from datetime import date
+    from google import genai
+    import json
+
+    today = date.today().isoformat()
+
+    prompt = f'''You are a study planning assistant. Based on the syllabus below, create a practical week-by-week study plan.
+
+Today's date: {today}
+Exam date: {exam_date}
+Hours available per week: {hours_per_week}
+
+Syllabus content:
+{syllabus_text}
+
+Generate a realistic study plan in this exact JSON format with no extra text, no markdown, no code blocks:
+{{
+  "weeks": [
+    {{
+      "week": 1,
+      "dates": "Apr 10 - Apr 16",
+      "focus": "Topic name",
+      "topics": ["specific topic 1", "specific topic 2"],
+      "hours": 3,
+      "tips": "One practical study tip"
+    }}
+  ],
+  "summary": "One sentence overview of the plan"
+}}'''
+
+    client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
+    response = client.models.generate_content(
+        model='gemini-2.0-flash-lite',
+        contents=prompt
+    )
+    text = response.text.strip()
+    if text.startswith('```'):
+        text = text.split('```')[1]
+        if text.startswith('json'):
+            text = text[4:]
+    plan = json.loads(text.strip())
+    return jsonify(plan)
 
 # --- Run ---
 

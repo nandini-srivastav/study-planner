@@ -103,19 +103,22 @@ async function loadSubjects() {
   const res = await fetch(`${API}/subjects`, { credentials: "include" });
   const subjects = await res.json();
   if (!Array.isArray(subjects)) return;
-  ["session-subject", "pomodoro-subject", "exam-subject-select"].forEach(
-    (id) => {
-      const select = document.getElementById(id);
-      if (!select) return;
-      const current = select.value;
-      select.innerHTML = '<option value="">Select subject...</option>';
-      subjects.forEach((s) => {
-        if (!s.id || !s.name) return;
-        select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-      });
-      select.value = current;
-    },
-  );
+  [
+    "session-subject",
+    "pomodoro-subject",
+    "exam-subject-select",
+    "plan-subject",
+  ].forEach((id) => {
+    const select = document.getElementById(id);
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Select subject...</option>';
+    subjects.forEach((s) => {
+      if (!s.id || !s.name) return;
+      select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+    select.value = current;
+  });
 }
 
 async function loadSessions() {
@@ -323,46 +326,53 @@ async function addSubject() {
   const weekly_goal_mins =
     parseInt(document.getElementById("subject-goal").value) || 120;
   if (!name) return alert("Please enter a subject name");
-  const res = await fetch(`${API}/subjects`, { credentials: 'include' });
-    const existing = await res.json();
-    const duplicate = existing.find(s => s.name.toLowerCase() === name.toLowerCase());
+  const res = await fetch(`${API}/subjects`, { credentials: "include" });
+  const existing = await res.json();
+  const duplicate = existing.find(
+    (s) => s.name.toLowerCase() === name.toLowerCase(),
+  );
 
-    if (duplicate) {
-        const choice = confirm(
-            `"${name}" already exists.\n\nClick OK to edit the existing subject.\nClick Cancel to replace it with a new entry.`
-        );
-        if (choice) {
-            openEditModal(duplicate.id, duplicate.name, duplicate.colour, duplicate.weekly_goal_mins);
-        } else {
-            await fetch(`${API}/subjects/${duplicate.id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-            await fetch(`${API}/subjects`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ name, colour, weekly_goal_mins })
-            });
-            document.getElementById("subject-name").value = "";
-            loadSubjects();
-            loadDashboard();
-            loadGoals();
-            loadExams();
-        }
-        return;
+  if (duplicate) {
+    const choice = confirm(
+      `"${name}" already exists.\n\nClick OK to edit the existing subject.\nClick Cancel to replace it with a new entry.`,
+    );
+    if (choice) {
+      openEditModal(
+        duplicate.id,
+        duplicate.name,
+        duplicate.colour,
+        duplicate.weekly_goal_mins,
+      );
+    } else {
+      await fetch(`${API}/subjects/${duplicate.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      await fetch(`${API}/subjects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name, colour, weekly_goal_mins }),
+      });
+      document.getElementById("subject-name").value = "";
+      loadSubjects();
+      loadDashboard();
+      loadGoals();
+      loadExams();
     }
-    await fetch(`${API}/subjects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ name, colour, weekly_goal_mins })
-    });
-    document.getElementById('subject-name').value = '';
-    loadSubjects();
-    loadDashboard();
-    loadGoals();
-    loadExams();
+    return;
+  }
+  await fetch(`${API}/subjects`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ name, colour, weekly_goal_mins }),
+  });
+  document.getElementById("subject-name").value = "";
+  loadSubjects();
+  loadDashboard();
+  loadGoals();
+  loadExams();
 }
 
 async function addSession() {
@@ -431,6 +441,79 @@ async function saveSubjectEdit() {
   loadSubjects();
   loadDashboard();
   loadGoals();
+}
+
+function updateFileName(input) {
+  const label = document.getElementById("upload-text");
+  label.textContent = input.files[0]
+    ? input.files[0].name
+    : "Upload syllabus PDF";
+}
+
+async function generatePlan() {
+  const subjectId = document.getElementById("plan-subject").value;
+  const examDate = document.getElementById("plan-exam-date").value;
+  const hours = document.getElementById("plan-hours").value;
+  const fileInput = document.getElementById("plan-syllabus");
+  const output = document.getElementById("plan-output");
+
+  if (!subjectId) return alert("Please select a subject");
+  if (!examDate) return alert("Please set an exam date");
+  if (!hours) return alert("Please enter hours per week");
+  if (!fileInput.files[0]) return alert("Please upload a syllabus PDF");
+
+  output.innerHTML =
+    '<div class="generating">Generating your study plan — this takes about 10 seconds...</div>';
+  document.getElementById("btn-generate").disabled = true;
+
+  const formData = new FormData();
+  formData.append("subject_id", subjectId);
+  formData.append("exam_date", examDate);
+  formData.append("hours_per_week", hours);
+  formData.append("syllabus", fileInput.files[0]);
+
+  try {
+    const res = await fetch(`${API}/generate-study-plan`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+    const plan = await res.json();
+
+    if (plan.error) {
+      output.innerHTML = `<p style="color:red">${plan.error}</p>`;
+      return;
+    }
+
+    output.innerHTML = `
+            <div class="plan-summary">${plan.summary}</div>
+            ${plan.weeks
+              .map(
+                (w) => `
+                <div class="plan-week">
+                    <div class="plan-week-header">
+                        <span class="plan-week-title">Week ${w.week}</span>
+                        <div style="display:flex;gap:0.5rem;align-items:center">
+                            <span class="plan-week-dates">${w.dates}</span>
+                            <span class="plan-hours-badge">${w.hours}h</span>
+                        </div>
+                    </div>
+                    <div class="plan-focus">${w.focus}</div>
+                    <ul class="plan-topics">
+                        ${w.topics.map((t) => `<li>${t}</li>`).join("")}
+                    </ul>
+                    <div class="plan-tip">Tip: ${w.tips}</div>
+                </div>
+            `,
+              )
+              .join("")}
+        `;
+  } catch (err) {
+    output.innerHTML =
+      '<p style="color:red">Something went wrong. Please try again.</p>';
+  } finally {
+    document.getElementById("btn-generate").disabled = false;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
